@@ -19,7 +19,7 @@ pipeline {
         stage('Package code') {
             steps {
                 dir('02-single-server-deployment') {
-                sh "zip -r ../myapp.zip . -x '*.git*'"
+                sh "zip -r myapp.zip . -x '*.git*'"
                 sh "ls -lart"
                 }
             }
