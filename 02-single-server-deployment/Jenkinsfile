@@ -7,19 +7,21 @@ pipeline {
     stages {
         stage('Setup') {
             steps {
-                sh "pip install -r requirements.txt"
+                sh "pip install -r 02-single-server-deployment/requirements.txt"
             }
         }
         stage('Test') {
             steps {
-                sh "pytest"
+                sh "pytest 02-single-server-deployment/test_app.py"
             }
         }
 
         stage('Package code') {
             steps {
-                sh "zip -r myapp.zip ./* -x '*.git*'"
+                dir('02-single-server-deployment') {
+                sh "zip -r ../myapp.zip . -x '*.git*'"
                 sh "ls -lart"
+                }
             }
         }
 
@@ -27,7 +29,7 @@ pipeline {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'ssh-key', keyFileVariable: 'MY_SSH_KEY', usernameVariable: 'username')]) {
                     sh '''
-                    scp -i $MY_SSH_KEY -o StrictHostKeyChecking=no myapp.zip  ${username}@${SERVER_IP}:/home/ec2-user/
+                    scp -i $MY_SSH_KEY -o StrictHostKeyChecking=no 02-single-server-deployment/myapp.zip  ${username}@${SERVER_IP}:/home/ec2-user/
                     ssh -i $MY_SSH_KEY -o StrictHostKeyChecking=no ${username}@${SERVER_IP} << EOF
                         unzip -o /home/ec2-user/myapp.zip -d /home/ec2-user/app/
                         source app/venv/bin/activate
